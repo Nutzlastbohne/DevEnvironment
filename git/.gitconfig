@@ -1,0 +1,102 @@
+[apply]
+#	ignorewhitespace = change
+#[browser "opera"]
+#	path = 'C:/Program Files (x86)/Opera/opera.exe'
+#	cmd = 'C:/Program Files (x86)/Opera/opera.exe'
+[color]
+	ui = true
+#	preloadindex = true
+[color "branch"]
+	current = green bold
+	remote = cyan
+[color "diff"]
+	old = red bold
+	new = green bold
+[color "status"]
+	added = green bold
+	changed = cyan bold
+	untracked = cyan dim
+	unmerged = red bold
+	nobranch = red bold
+	branch = green bold
+[core]
+	editor = 'D:/Programme/Notepad++/notepad++.exe' -multiInst -nosession -notabbar
+[diff]
+	tool = diffuse
+	mnemonicprefix = true	# E.g. instead of annotating diff paths with "a" and "b", annotate with "i" and "w" (Index, Workspace)
+[difftool]
+	prompt = false			# starting difftool won't ask for confirmation
+[difftool.diffuse]
+	path = D:/Dev/Diffuse/diffuse.exe
+[grep]
+	lineNumber = true	# always show line-numbers
+[gui]
+	encoding = ISO-8859-1
+#[help]
+#	browser = opera
+[i18n]
+	commitEncoding = ISO-8859-1
+[merge]
+	tool = diffuse
+	defaultToUpstream = true	# if no <tree-ish> parameter given, merge with origin/[branch]
+[mergetool]
+	prompt = false
+[rerere]
+	enabled = true
+[rebase]
+	stat = true
+	autostash = true
+[push]
+	default = current	# only push active branch
+[status]
+	relativePaths = false
+[user]
+	name = moe
+	email = moe@waagh.org
+[web]
+	browser = opera
+[alias]
+	logtree		= log --format='Author: %an, Date: %ai, Hash: %H%n%w(220,6,6)%s' --graph
+	shrtlog		= log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --shortstat
+	daylog		= log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --numstat --since='yesterday'
+	dlog		= log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --numstat ..FETCH_HEAD
+	dlogX		= log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --numstat
+	lasttag		= describe --tags --abbrev=0
+	gconf		= config --global -e
+	lconf		= config --local -e
+	sup			= "!f(){ gitk ..FETCH_HEAD; }; f"
+	pmerge		= merge -s recursive -X patience -X ignore-all-space	# patient merge - takes longer but may resolve more conflicts
+	mt			= mergetool -y
+	df			= difftool -y
+	
+	# files touched by commits with message $*
+	filesTouchedBy	= "!f() { git log --grep=$1 --numstat $2 | grep java | cut -f3 | sort | uniq; }; f"
+	existingFilesTouchedBy = "!f() { for i in $(git filestouchedby $1 $2); do if [ -e $i ] ; then echo $i; fi ; done }; f"
+	
+	# print all hashes for commits with message $*
+	hashesWithMsg	= "!f() { git log --format="%H" --reverse --grep=$*; }; f"
+	# prepare review-squash: list Hashes with message $1 + add prefix $1 to the first and $2 for remaining entries
+	#prepSquash	= "!f() { prefix=$1; for i in $(git log --grep=${@:3} --format="%H" --reverse); do echo "$prefix $i"; prefix=$2; done }; f"
+	#prepSquash	= "!f() { prefix=$2; for i in $(git log --grep=$1 --format="%H" --reverse); do echo "$prefix $i"; prefix=$3; done }; f"
+	prepSquash	= "!f() { prefix=p; for i in $(git log --grep=$1 --format="%H" --reverse); do echo "$prefix $i"; prefix=s; done }; f"
+	# do X for each file in status Y (see 'git status --porcelain')
+	doXForAll	= "!f() { for i in $(git status --porcelain | grep -E ${@:2} | cut -b4-); do $1 $i; done }; f"
+	
+	resetFilesTouchedBy = "!f() {  for i in $(git filestouchedby $1 $2); do if [ -e $i ] ; then echo $i; fi ; done | tr [:space:] ' ' | xargs git reset; }; f"
+	addFilesTouchedBy = "!f() {  for i in $(git filestouchedby $1 $2); do if [ -e $i ] ; then echo $i; fi ; done | tr [:space:] ' ' | xargs git add; }; f"
+	
+	# generate review Branch
+	genReviewBranch = "!f() { "\
+						"branchname=$1"-Review"; "\
+						"firstRelevantCommit=$(git log --reverse --grep=$1 | head -1 | cut -b8-); "\
+						"firstRelevantCommit=$firstRelevantCommit"~1"; "\
+						"git checkout -b $branchname; "\
+						"echo \"reset soft to -> $firstRelevantCommit\"; "\
+						"git reset --soft $firstRelevantCommit; "\
+						"git resetFilesTouchedBy $1 $2 ; "\
+						"echo \"commit misc files\"; "\
+						"git commit -m \"squashed misc\"; "\
+						"git addFilesTouchedBy $1 $2; "\
+						"echo \"commit $1 relevant files\"; "\
+						"git commit -m \"squashed commit for call $1\"; "\
+						"}; f"

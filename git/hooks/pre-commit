@@ -1,0 +1,19 @@
+#!/bin/sh
+
+skipRebaseInProgressCheck=$(git config hooks.skipRebaseInProgressCheck)
+
+if [ "$skipRebaseInProgressCheck" != "true" ] && ([ -d ".git/rebase-merge" ] || [ -d ".git/rebase-apply" ]); then
+	echo
+	echo "-=! Warning !=-"
+	echo "It seems you have a rebase in progress!"
+	echo "If you use 'git commit' now, your HEAD will be detached afterwards!"
+	echo
+	echo "To continue rebasing, use: git rebase --continue"
+	echo	
+	echo "If you know what you are doing you can disable this check:"
+	echo "  git config hooks.skipRebaseInProgressCheck true"
+	echo
+	exit 1
+fi
+
+exit 0
