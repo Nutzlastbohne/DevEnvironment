@@ -23,7 +23,7 @@ function appendMessage {
 
 ######################################### Aliases ######################################### 
 appendMessage("--- add aliases ---")
-Set-Alias np "C:\Program Files (x86)\Notepad++\notepad++.exe"
+Set-Alias np "D:\Programme\Notepad++\notepad++.exe"
 Set-Alias edit np
 Set-Alias ll ls
 Set-Alias which Get-Command
@@ -46,6 +46,7 @@ function jbcli {
 	C:\Dev\server\jboss-as-7.1.3.Final\bin\jboss-cli.bat
 }
 
+
 appendMessage("`t testFiles - given a list of files, checks for existence")
 function testFiles {
 	foreach ($i in $args) { 
@@ -56,9 +57,6 @@ function testFiles {
 		}
 	}
 }
-
-
-
 
 ######################################### ConEmu
 # get all instances of ConEmu64
@@ -82,11 +80,11 @@ Try {
 	$GIT_PATH = @(which git)[0]	# in case /cmd and /bin are listed => use first entry
 	$GIT_HOME = (get-item $GIT_PATH.Definition).Directory.Parent.FullName
 	
-	Set-Alias gitk "$GIT_HOME\cmd\gitk.cmd"					# in case /cmd is not part of $PATH, link gitk manually
+	# Set-Alias gitk "$GIT_HOME\cmd\gitk.cmd"					# in case /cmd is not part of $PATH, link gitk manually
 	
 	appendMessage("`tadd gitg - git staging gui")
 	function gitg {
-		start C:\Dev\Git\bin\wish.exe "C:\Dev\Git\libexec\git-core\git-gui"
+		start $GIT_HOME\bin\wish.exe "$GIT_HOME\libexec\git-core\git-gui"
 	}
 
 	appendMessage("`tadd gdiff - git difftool -y")
