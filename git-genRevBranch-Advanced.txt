@@ -1,0 +1,74 @@
+
+folgendes Script teilt die Änderungen in zwei Commits:
+following script splits a set of commits into two commits:
+1) irrelevant files
+2) relevant files
+
+	### genReviewBranch <commit message> <branch> - generates a review branch where all files touched by commits with message <commit message>
+	#	will be squashed into a single commit. Remaining files will be squashed into another commit.
+	# example:
+	#	git genreviewbranch ZIB-1234 origin/2.5
+	genReviewBranch = "!f() { "\
+						"branchname=$1"-Review"; "\
+						"firstRelevantCommit=$(git log --reverse --grep=$1 | head -1 | cut -b8-); "\
+						"firstRelevantCommit=$firstRelevantCommit"~1"; "\
+						"git checkout -b $branchname; "\
+						"echo \"reset soft to -> $firstRelevantCommit\"; "\
+						"git reset --soft $firstRelevantCommit; "\
+						"git resetfilestouchedby $1 $2 ; "\
+						"echo \"commit misc files\"; "\
+						"git commit --author=\"others <others@zib.com>\" -m \"squashed misc\"; "\
+						"git addfilestouchedby $1 $2; "\
+						"echo \"commit $1 relevant files\"; "\
+						"git commit --author=\"$1 <$1@zib.com>\" -m \"squashed commit for call $1\"; "\
+						"}; f"
+						
+						
+Hier geht aber mehr. Änderungen die nach dem letzten <Call-Commit> erfolgt sind, können in einen weiteren Commit gesquasht werden.
+How to:
+	1) find first relevant commmit (A)
+	2) find last relevant commit (Z)
+	3) rollbach to A~1
+		squash irrelevant files into "misc-commit"
+		squash relevant files into "relevant-commit for call"
+	4) cherry-pick Z..<Branch-HEAD> -> can this work?
+		maybe using strategy 'theirs'
+		are cherr-picks easily squashable? '--no-commit' + <something to allow CPs with dirty workspaces
+		Oder
+		git diff --patch Z..HEAD | git apply -
+											 ^- Read from StdIn
+		+ git commit -m "misc-commit - future"
+		
+genRevBranch overhaul
+
+
+	### genReviewBranch <commit message> <branch> - generates a review branch where all files touched by commits with message <commit message>
+	#	will be squashed into a single commit. Remaining files will be squashed into another commit.
+	# example:
+	#	git genreviewbranch ZIB-1234 origin/2.5
+	genReviewBranch = "!f() { "\
+						"callId=$1; "\
+						"revBranchName=$callId"-Review"; "\
+						"baseBranch=$2; "\
+						"firstRelevantCommit=$(git log --reverse --grep=$callId | head -1 | cut -b8-); "\
+						"firstRelevantCommit=$firstRelevantCommit"~1"; "\
+						"lastRelevantCommit=$(git log --grep=$callId | head -1 | cut -b8-); "\				# find last commit for Call X
+						"git checkout -b $revBranchName $lastRelevantCommit; "\								# following commits shall be ignored for now
+						"echo \"reset soft to -> $firstRelevantCommit\"; "\
+						"git reset --soft $firstRelevantCommit; "\
+						"git resetfilestouchedby $callId $baseBranch ; "\
+						"echo \"commit misc files\"; "\
+						"git commit --author=\"others <others@zib.com>\" -m \"squashed misc\"; "\
+						"git addfilestouchedby $callId $baseBranch; "\
+						"echo \"commit $callId relevant files\"; "\
+						"git commit --author=\"$callId <$callId@zib.com>\" -m \"squashed commit for call $callId\"; "\
+						"git diff --patch $lastRelevantCommit..$baseBranch | git apply -; "\				# apply diff-patch for "future-commits"
+						"git commit --allow-empty --author=\"others <others@zib.com>\" -m \"squashed misc - future\"; "\	# --allow-empty for easy handling of $lastRelevantCommit == $baseBranch
+						"}; f"
+
+Result: 3 Commits - 1) irrelevant, 2) relevant, 3) irrelevant
+in the end, the WorkingDirectory of ReviewBranch _must_ be equal to BaseBranch
+
+Insight:
+Last commit not necessary if no client/server launch necessary!
+But if one wants to do testing, the "hard-way" is faster -> no build necessary
