@@ -1,11 +1,7 @@
 [apply]
-#	ignorewhitespace = change
-#[browser "opera"]
-#	path = 'C:/Program Files (x86)/Opera/opera.exe'
-#	cmd = 'C:/Program Files (x86)/Opera/opera.exe'
+	ignorewhitespace = change
 [color]
 	ui = true
-#	preloadindex = true
 [color "branch"]
 	current = green bold
 	remote = cyan
@@ -13,79 +9,126 @@
 	old = red bold
 	new = green bold
 [color "status"]
-	added = green bold
 	changed = cyan bold
+	added = green bold
 	untracked = cyan dim
 	unmerged = red bold
 	nobranch = red bold
 	branch = green bold
 [core]
-	editor = 'D:/Programme/Notepad++/notepad++.exe' -multiInst -nosession -notabbar
+	# editor = 'C:/Tools/Notepad++/notepad++.exe' -multiInst -nosession -notabbar
+	editor = 'C:/Tools/Sublime3/sublime_text.exe' -multiinstance -wait
+	preloadindex = true # recommended for filesystems with high IO latencies like NFS
+	ignorecase = true
 [diff]
-	tool = diffuse
-	mnemonicprefix = true	# E.g. instead of annotating diff paths with "a" and "b", annotate with "i" and "w" (Index, Workspace)
+	# tool = diffuse	
+	tool = winmerge
+	mnemonicprefix = true # E.g. instead of annotating diff paths with "a" and "b", annotate with "i" and "w" (Index, Workspace)
 [difftool]
-	prompt = false			# starting difftool won't ask for confirmation
+	prompt = false # starting difftool won't ask for confirmation
 [difftool.diffuse]
-	path = D:/Dev/Diffuse/diffuse.exe
+	path = C:/Tools/Diffuse/diffuse.exe
+[difftool "winmerge"]	
+	name = WinMerge
+	trustExitCode = true
+	cmd = "/c/Dev/WinMerge/WinMergeU.exe" -u -e -dl \"HEAD\" -dr \"Workspace\" $LOCAL $REMOTE
 [grep]
-	lineNumber = true	# always show line-numbers
+	lineNumber = true # always show line-numbers
+	extendedRegexp = true
 [gui]
-	encoding = ISO-8859-1
-#[help]
-#	browser = opera
+	encoding = UTF-8
+[help]
+	browser = firefox
 [i18n]
-	commitEncoding = ISO-8859-1
+	commitEncoding = windows-1252
+	logOutputEncoding = windows-1252
 [merge]
 	tool = diffuse
-	defaultToUpstream = true	# if no <tree-ish> parameter given, merge with origin/[branch]
+	# tool = winmerge
+	defaultToUpstream = true # if no <tree-ish> parameter given, merge with origin/[branch]
 [mergetool]
 	prompt = false
+[mergetool "winmerge"]	
+	name = WinMerge
+	trustExitCode = true
+	cmd = "/c/Dev/WinMerge/WinMergeU.exe" -u -e -dl \"Local\" -dr \"Remote\" $LOCAL $REMOTE $MERGED
 [rerere]
 	enabled = true
 [rebase]
 	stat = true
 	autostash = true
+[pull]
+	rebase = preserve
 [push]
-	default = current	# only push active branch
+	default = current # only push active branch
 [status]
 	relativePaths = false
 [user]
 	name = moe
 	email = moe@waagh.org
 [web]
-	browser = opera
+	browser = firefox
 [alias]
-	logtree		= log --format='Author: %an, Date: %ai, Hash: %H%n%w(220,6,6)%s' --graph
-	shrtlog		= log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --shortstat
-	daylog		= log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --numstat --since='yesterday'
-	dlog		= log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --numstat ..FETCH_HEAD
-	dlogX		= log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --numstat
-	lasttag		= describe --tags --abbrev=0
-	gconf		= config --global -e
-	lconf		= config --local -e
-	sup			= "!f(){ gitk ..FETCH_HEAD; }; f"
-	pmerge		= merge -s recursive -X patience -X ignore-all-space	# patient merge - takes longer but may resolve more conflicts
-	mt			= mergetool -y
-	df			= difftool -y
+	logtree = log --format='%an - %ai, Hash: %H%n%w(220,6,6)%s' --graph
+	shrtlog = log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --shortstat
+	daylog = log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --numstat --since='yesterday'
+	dlog = log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --numstat ..FETCH_HEAD
+	dlogX = log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --numstat
+	lasttag = describe --tags --abbrev=0
+	taglist = "!f() { git log --tags --simplify-by-decoration --format=%d | grep -E 'tag.*Sprint' | tr -d '(),' | cut -f3 --delimiter=' '; }; f"
+	# print changes between last tag and second last tag
+	chglog = "!f() { CURR_TAG=$(git lasttag); PREV_TAG=$(git lasttag $CURR_TAG~1) ; echo "--== $CURR_TAG ==--"; git log --oneline $PREV_TAG..$CURR_TAG | cut -b9- | sort | uniq -w8 | grep -E '^(ZIB-[0-9]{4,})'; }; f"
+	# print changes since last tag
+	sprintlog = "!f() { LAST_TAG=$(git lasttag); git log --oneline $LAST_TAG..HEAD | cut -b9- | sort | uniq -w8; }; f"
+	gconf = config --global -e
+	lconf = config --local -e
+	sup = "!f(){ gitk ..FETCH_HEAD; }; f &" # upstream changes
+	pus = "!f(){ gitk ORIG_HEAD..; }; f &" # changes since last rebase/merge
+	pmerge = merge -s recursive -X patience -X ignore-all-space # patient merge - takes longer but may resolve more conflicts
+	mt = mergetool -y
+	df = difftool -y
+	cp = cherry-pick
+	co = checkout
+	st = status --porcelain
+	local-ignore = update-index --assume-unchanged
+	local-unignore = update-index --no-assume-unchanged
+	ignored = "!f(){ git ls-files -v | grep ^h; }; f"
 	
-	# files touched by commits with message $*
-	filesTouchedBy	= "!f() { git log --grep=$1 --numstat $2 | grep java | cut -f3 | sort | uniq; }; f"
+	### filesTouchedBy <commit message> [<other git log options>] - Files touched by commits containing this message
+	# "^[0-9]+.+[0-9]+" represents the start of the changes list. It's not beautiful, but compatible with both linux and windows grep
+	filesTouchedBy = "!f() { git log --grep=$1 --numstat $2 | grep -E ^[0-9]+.+[0-9]+ | cut -f3 | sort | uniq; }; f"
+	
+	### existingFilesTouchedBy <commit message> [<other git log options>] - like 'filesTouchedBy', but will only list exisiting files
 	existingFilesTouchedBy = "!f() { for i in $(git filestouchedby $1 $2); do if [ -e $i ] ; then echo $i; fi ; done }; f"
 	
-	# print all hashes for commits with message $*
-	hashesWithMsg	= "!f() { git log --format="%H" --reverse --grep=$*; }; f"
-	# prepare review-squash: list Hashes with message $1 + add prefix $1 to the first and $2 for remaining entries
-	#prepSquash	= "!f() { prefix=$1; for i in $(git log --grep=${@:3} --format="%H" --reverse); do echo "$prefix $i"; prefix=$2; done }; f"
-	#prepSquash	= "!f() { prefix=$2; for i in $(git log --grep=$1 --format="%H" --reverse); do echo "$prefix $i"; prefix=$3; done }; f"
-	prepSquash	= "!f() { prefix=p; for i in $(git log --grep=$1 --format="%H" --reverse); do echo "$prefix $i"; prefix=s; done }; f"
-	# do X for each file in status Y (see 'git status --porcelain')
-	doXForAll	= "!f() { for i in $(git status --porcelain | grep -E ${@:2} | cut -b4-); do $1 $i; done }; f"
+	### hasheswithmsg <commit message> - print hashes for all commits with this message (oldest commit first)
+	hashesWithMsg = "!f() { git log --format=%H --reverse --grep=$*; }; f"
 	
-	resetFilesTouchedBy = "!f() {  for i in $(git filestouchedby $1 $2); do if [ -e $i ] ; then echo $i; fi ; done | tr [:space:] ' ' | xargs git reset; }; f"
-	addFilesTouchedBy = "!f() {  for i in $(git filestouchedby $1 $2); do if [ -e $i ] ; then echo $i; fi ; done | tr [:space:] ' ' | xargs git add; }; f"
+	### prepSquash <commit message> - Prepares a 'review-squash': list hashes of commits with message $1 and add prefix 'p' to the first and 's' for remaining entries
+	prepSquash = "!f() { prefix=p; for i in $(git log --grep=$1 --format=%H --reverse); do echo $prefix $i; prefix=s; done }; f"
 	
-	# generate review Branch
+	### doXForAll <command> <porcelain-status> - do <command> for each file in status <porcelain-status> (see 'git status --porcelain' for valid status values)
+	# example for resetting all changed files added to "changes to be committed" (won't touch 'deleted' files): >git doxforall "git checkout" "^ M"
+	doXForAll = "!f() { for i in $(git status --porcelain | grep -E \"$2\" | cut -b4-); do $1 $i; done }; f"
+	
+	### resetFilesTouchedBy  <commit message> <branch> - resets all files touched by commits containing <commit message> on branch <branch>. Useful for Reviews
+	resetFilesTouchedBy = "!f() { for i in $(git filestouchedby $1 $2); do if [ -e $i ] ; then echo $i; fi ; done | tr [:space:] ' ' | xargs git reset; }; f"
+	
+	### addFilesTouchedBy  <commit message> <branch> - add all files touched by commits with message <commit message> on branch <branch>. Useful for Reviews
+	addFilesTouchedBy = "!f() { for i in $(git filestouchedby $1 $2); do if [ -e $i ] ; then echo $i; fi ; done | tr [:space:] ' ' | xargs git add; }; f"
+	
+	### assumeUnchanged <folder> - git will ignore <folder> for status calculation
+	# assumeUnchanged = "!f() { for i in $(git ls-files -v $1 | grep ^H.* | cut -b3-); do git local-ignore $i; done }; f"
+	assumeUnchanged = "!f() { git ls-files -z $1 | xargs -0 -n 100 git update-index --assume-unchanged; }; f"
+	
+	### noAssumeUnchanged <folder> - git wont ignore <folder> any longer for status calculation
+	# noAssumeUnchanged = "!f() { for i in $(git ls-files -v $1 | grep ^h.* | cut -b3-); do git local-unignore $i; done }; f"
+	noassumeUnchanged = "!f() { git ls-files -z $1 | xargs -0 -n 100 git update-index --no-assume-unchanged; }; f"
+
+	### genReviewBranch <commit message> <branch> - generates a review branch where all files touched by commits with message <commit message>
+	#	will be squashed into a single commit. Remaining files will be squashed into another commit.
+	# example:
+	#	git genreviewbranch ZIB-1234 origin/2.5
 	genReviewBranch = "!f() { "\
 						"branchname=$1"-Review"; "\
 						"firstRelevantCommit=$(git log --reverse --grep=$1 | head -1 | cut -b8-); "\
@@ -93,10 +136,10 @@
 						"git checkout -b $branchname; "\
 						"echo \"reset soft to -> $firstRelevantCommit\"; "\
 						"git reset --soft $firstRelevantCommit; "\
-						"git resetFilesTouchedBy $1 $2 ; "\
+						"git resetfilestouchedby $1 $2 ; "\
 						"echo \"commit misc files\"; "\
-						"git commit -m \"squashed misc\"; "\
-						"git addFilesTouchedBy $1 $2; "\
+						"git commit --author=\"others <others@zib.com>\" -m \"squashed misc\"; "\
+						"git addfilestouchedby $1 $2; "\
 						"echo \"commit $1 relevant files\"; "\
-						"git commit -m \"squashed commit for call $1\"; "\
+						"git commit --author=\"$1 <$1@zib.com>\" -m \"squashed commit for call $1\"; "\
 						"}; f"
