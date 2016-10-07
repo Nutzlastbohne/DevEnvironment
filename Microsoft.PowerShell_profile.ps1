@@ -30,13 +30,14 @@ $MONGO_REPO = "C:\Dev\db_repo"
 $JBOSS_HOME = "C:\Dev\server\jboss-eap-6.2"
 
 ## docker relevant ##
-$env:DOCKER_HOST = "tcp://192.168.59.103:2376"
-$env:DOCKER_CERT_PATH = "$env:USERPROFILE\.boot2docker\certs\boot2docker-vm"
-$env:DOCKER_TLS_VERIFY = 1
+# depcrecated since docker machine
+#$env:DOCKER_HOST = "tcp://192.168.59.103:2376"
+#$env:DOCKER_CERT_PATH = "$env:USERPROFILE\.boot2docker\certs\boot2docker-vm"
+#$env:DOCKER_TLS_VERIFY = 1
 function nyan {docker run --rm -it supertest2014/nyan}
 function docker-pwd{(pwd).Path | tr '\\' '/' | cut -b 3- | xargs echo /c | tr -d "[:space:]"} # returns the current path in a format as it would inside boot2docker
 
-function docker-compose {
+function docker-compose-old {
 	# get current path and make it linux compliant (replace '\' with '/' and 'c:' with '/c'. 'echo' adds an unneded space which must be trimmed at the end)
 	docker run --rm -v "$(docker-pwd):/app" -v /var/run/docker.sock:/var/run/docker.sock dduportal/docker-compose:latest $args
 }
@@ -44,6 +45,22 @@ function docker-compose {
 function docker-python {
 	# docker run -it --rm --name my-running-script -v "$PWD":/usr/src/myapp -w /usr/src/myapp python:2 python your-daemon-or-script.py
 	docker run -it --rm --name pyContainer -v "$(docker-pwd):/app" -w /app python:2 python $args
+}
+
+Set-Alias dm docker-machine
+Set-Alias eval Invoke-Expression
+
+function export {
+    $cutArgs = $args | tr '=' '\n'
+    $varName = $cutArgs[0]
+    $varValue = $cutArgs[1]
+    Write-Host 'Set '$varName':'$varValue
+    [Environment]::SetEnvironmentVariable($varName, $varValue, "User")
+}
+
+function envdock {
+    # lists docker environment vars as valid windows "export" statements
+    Write-Host @(dm env $args | grep -e "^[^#]" | sed "s/export /\$\env\:/g" | tr '\r' ';' | tr -d '\n')
 }
 
 ######################################### ENV_VARS ########################################
@@ -56,6 +73,8 @@ appendMessage("`t edit FILE - open FILE with Notepad")
 Set-Alias edit $SUBLIME_HOME
 appendMessage("`t find - Linux style 'find'")
 Set-Alias -Name find -Value $GIT_HOME\usr\bin\find.exe -Option AllScope	# overwrite windows 'find' with Linux derivative
+appendMessage("`t rm - Linux style 'rm'")
+Set-Alias -Name rm -Value $GIT_HOME\usr\bin\rm.exe -Option AllScope	# overwrite windows 'rm' with Linux derivative
 appendMessage("`t sort - Linux style 'sort'")
 Set-Alias -Name srt -Value $GIT_HOME\usr\bin\sort.exe -Option AllScope	# linux sort ('sort' is reserved for windows sort)
 appendMessage("`t ll - alias for 'ls'")
@@ -74,15 +93,13 @@ function jbcli {
 	start $JBOSS_HOME\bin\jboss-cli.bat
 }
 
-appendMessage("`t man COMMAND - linux style 'man'")
+appendMessage("`t man [COMMAND] - linux style 'man'")
 function linuxStyleMan {Get-Help "$args" -full | less}							# windows default pager is lame... use less
-
-appendMessage("`t man COMMAND - linux style 'man' onlinehelp")
-function helpOnline {Get-Help "$args" -Online}
-
 Set-Alias -Name man -Value linuxStyleMan -Option AllScope				# get full windows help within pager
-Set-Alias -Name help -Value helpOnline -Option AllScope					# open help web-site
 
+appendMessage("`t help [COMMAND] - Get onlinehelp")
+function helpOnline {Get-Help "$args" -Online}
+Set-Alias -Name help -Value helpOnline -Option AllScope					# open help web-site
 
 appendMessage("`t rc STRING - rename console")
 function rc {$ui.WindowTitle=$args}
@@ -105,6 +122,11 @@ function whichFctn {Get-Command "$args" | Format-Table -AutoSize DisplayName, Pa
 
 appendMessage("`t which COMMAND - alias for 'Get-Command'")
 Set-Alias -Name which -Value whichFctn -Option AllScope
+
+appendMessage("`t ssc X - create new console for ssh connection to server with alias X")
+function ssc {
+    ssh $args -new_console:t:$args
+}
 
 ######################################### Maven Stuff #########################################
 
@@ -172,8 +194,8 @@ appendMessage("")
 
 $ErrorActionPreference = $oldErrorActionPreferente 
 
-#if ( @(gwmi win32_process -f "name='powershell.exe'").length -eq 1 ) {		# only print debug stuff if first powershell-instance
+if ( @(gwmi win32_process -f "name='powershell.exe'").length -eq 1 ) {		# only print debug stuff if first powershell-instance
 	Write-Host -fore Cyan $global:message
-#} else {
+} else {
 	Clear-Host
-#}
+}
