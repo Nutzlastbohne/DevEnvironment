@@ -1,0 +1,4 @@
+
+Gibt Liste mit modifizierten Projekten zurück
+	(git status --s | Select-String "^\s?M\s") -split "^\s?M\s", 0
+	

@@ -1,0 +1,1 @@
+C:\Dev\server\jboss-eap-6.2\bin\jconsole.bat %*
