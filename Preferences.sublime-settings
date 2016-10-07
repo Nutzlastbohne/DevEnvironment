@@ -1,0 +1,10 @@
+{
+	"color_scheme": "Packages/Color Scheme - Default/Monokai.tmTheme",
+	"font_face": "Source Code Pro Semibold",
+	"ignored_packages":
+	[
+		"Git",
+		"GitGutter",
+		"Vintage"
+	]
+}
