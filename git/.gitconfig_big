@@ -1,0 +1,124 @@
+[apply]
+	ignorewhitespace = change
+[color]
+	ui = true
+[color "branch"]
+	current = green bold
+	remote = cyan
+[color "diff"]
+	old = red bold
+	new = green bold
+[color "status"]
+	changed = cyan bold
+	added = green bold
+	untracked = cyan dim
+	unmerged = red bold
+	nobranch = red bold
+	branch = green bold
+[core]
+	editor = 'C:/Tools/Notepad++/notepad++.exe' -multiInst -nosession -notabbar
+	preloadindex = true # recommended for filesystems with high IO latencies like NFS
+	ignorecase = true
+[diff]
+	tool = diffuse
+	mnemonicprefix = true # E.g. instead of annotating diff paths with "a" and "b", annotate with "i" and "w" (Index, Workspace)
+[difftool]
+	prompt = false # starting difftool won't ask for confirmation
+[difftool.diffuse]
+	path = C:/Dev/Diffuse/diffuse.exe
+[grep]
+	lineNumber = true # always show line-numbers
+	extendedRegexp = true
+[gui]
+	encoding = UTF-8
+[help]
+	browser = firefox
+[i18n]
+	commitEncoding = windows-1252
+	logOutputEncoding = windows-1252
+[merge]
+	tool = diffuse
+	defaultToUpstream = true # if no <tree-ish> parameter given, merge with origin/[branch]
+[mergetool]
+	prompt = false
+[rerere]
+	enabled = true
+[rebase]
+	stat = true
+	autostash = true
+[pull]
+	rebase = preserve
+[push]
+	default = current # only push active branch
+[status]
+	relativePaths = false
+[user]
+	name = robert
+	email = robert@dev.bnd.de
+[web]
+	browser = firefox
+[alias]
+	logtree = log --format='%an - %ai, Hash: %H%n%w(220,6,6)%s' --graph
+	shrtlog = log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --shortstat
+	daylog = log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --numstat --since='yesterday'
+	dlog = log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --numstat ..FETCH_HEAD
+	dlogX = log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --numstat
+	lasttag = describe --tags --abbrev=0
+	gconf = config --global -e
+	lconf = config --local -e
+	sup = "!f(){ gitk ..FETCH_HEAD; }; f &" # upstream changes
+	pus = "!f(){ gitk ORIG_HEAD..; }; f &" # changes since last rebase/merge
+	pmerge = merge -s recursive -X patience -X ignore-all-space # patient merge - takes longer but may resolve more conflicts
+	mt = mergetool -y
+	df = difftool -y
+	cp = cherry-pick
+	co = checkout
+	local-ignore = update-index --assume-unchanged
+	local-unignore = update-index --no-assume-unchanged
+	
+	### filesTouchedBy <commit message> [<other git log options>] - Files touched by commits containing this message
+	# "^[0-9]+.+[0-9]+" represents the start of the changes list. It's not beautiful, but compatible with both linux and windows grep
+	filesTouchedBy = "!f() { git log --grep=$1 --numstat $2 | grep -E ^[0-9]+.+[0-9]+ | cut -f3 | sort | uniq; }; f"
+	### existingFilesTouchedBy <commit message> [<other git log options>] - like 'filesTouchedBy', but will only list exisiting files
+	existingFilesTouchedBy = "!f() { for i in $(git filestouchedby $1 $2); do if [ -e $i ] ; then echo $i; fi ; done }; f"
+	### hasheswithmsg <commit message> - print hashes for all commits with this message (oldest commit first)
+	hashesWithMsg = "!f() { git log --format=%H --reverse --grep=$*; }; f"
+	### prepSquash <commit message> - Prepares a 'review-squash': list hashes of commits with message $1 and add prefix 'p' to the first and 's' for remaining entries
+	prepSquash = "!f() { prefix=p; for i in $(git log --grep=$1 --format=%H --reverse); do echo $prefix $i; prefix=s; done }; f"
+	### doXForAll <command> <porcelain-status> - do <command> for each file in status <porcelain-status> (see 'git status --porcelain' for valid status values)
+	# example for resetting all changed files added to "changes to be committed" (won't touch 'deleted' files): >git doxforall 'git checkout' '^ M'
+	doXForAll = "!f() { for i in $(git status --porcelain | grep -E $2 | cut -b4-); do $1 $i; done }; f"
+	### resetFilesTouchedBy  <commit message> <branch> - resets all files touched by commits containing <commit message> on branch <branch>. Useful for Reviews
+	resetFilesTouchedBy = "!f() { for i in $(git filestouchedby $1 $2); do if [ -e $i ] ; then echo $i; fi ; done | tr [:space:] ' ' | xargs git reset; }; f"
+	### addFilesTouchedBy  <commit message> <branch> - add all files touched by commits with message <commit message> on branch <branch>. Useful for Reviews
+	addFilesTouchedBy = "!f() { for i in $(git filestouchedby $1 $2); do if [ -e $i ] ; then echo $i; fi ; done | tr [:space:] ' ' | xargs git add; }; f"
+	### assumeUnchanged <folder> - git will ignore <folder> for status calculation
+	assumeUnchanged = "!f() { for i in $(git ls-files -v $1 | grep ^H.* | cut -b3-); do git local-ignore $i; done }; f"
+	# assumeUnchanged = "!f() { git ls-files -z $1 | xargs -0 -n 100 git update-index --assume-unchanged; }; f"	# won't touch all files, if '100 mod files.length != 0' ...
+	### assumeUnchanged <folder> - git wont ignore <folder> any longer for status calculation
+	noAssumeUnchanged = "!f() { for i in $(git ls-files -v $1 | grep ^h.* | cut -b3-); do git local-unignore $i; done }; f"
+	# noassumeUnchanged = "!f() { git ls-files -z $1 | xargs -0 -n 100 git update-index --no-assume-unchanged; }; f" # same as above... bug within xargs?
+	
+	getLast = "!f() { echo ${*: -1}; }; f"
+	#getHead = "!f() { echo ${@:2}; }; f"
+	#getAllButLast = "!f() { echo ${*: 1:${#}-1}; }; f"
+
+	
+	### genReviewBranch <commit message> <branch> - generates a review branch where all files touched by commits with message <commit message>
+	#	will be squashed into a single commit. Remaining files will be squashed into another commit.
+	# example:
+	#	git genreviewbranch ZIB-1234 origin/2.5
+	genReviewBranch = "!f() { "\
+						"branchname=$1"-Review"; "\
+						"firstRelevantCommit=$(git log --reverse --grep=$1 | head -1 | cut -b8-); "\
+						"firstRelevantCommit=$firstRelevantCommit"~1"; "\
+						"git checkout -b $branchname; "\
+						"echo \"reset soft to -> $firstRelevantCommit\"; "\
+						"git reset --soft $firstRelevantCommit; "\
+						"git resetfilestouchedby $1 $2 ; "\
+						"echo \"commit misc files\"; "\
+						"git commit --author=\"others <others@zib.com>\" -m \"squashed misc\"; "\
+						"git addfilestouchedby $1 $2; "\
+						"echo \"commit $1 relevant files\"; "\
+						"git commit --author=\"$1 <$1@zib.com>\" -m \"squashed commit for call $1\"; "\
+						"}; f"
