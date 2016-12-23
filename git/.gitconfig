@@ -16,20 +16,18 @@
 	nobranch = red bold
 	branch = green bold
 [core]
-	# editor = 'C:/Tools/Notepad++/notepad++.exe' -multiInst -nosession -notabbar
 	editor = 'C:/Tools/Sublime3/sublime_text.exe' -multiinstance -wait
 	preloadindex = true # recommended for filesystems with high IO latencies like NFS
 	ignorecase = true
 [diff]
-	# tool = diffuse	
-	tool = winmerge
+	tool = diffuse	
+	# tool = winmerge
 	mnemonicprefix = true # E.g. instead of annotating diff paths with "a" and "b", annotate with "i" and "w" (Index, Workspace)
 [difftool]
 	prompt = false # starting difftool won't ask for confirmation
 [difftool.diffuse]
 	path = C:/Tools/Diffuse/diffuse.exe
-[difftool "winmerge"]	
-	name = WinMerge
+[difftool.winmerge]	
 	trustExitCode = true
 	cmd = "/c/Dev/WinMerge/WinMergeU.exe" -u -e -dl \"HEAD\" -dr \"Workspace\" $LOCAL $REMOTE
 [grep]
@@ -37,8 +35,6 @@
 	extendedRegexp = true
 [gui]
 	encoding = UTF-8
-[help]
-	browser = firefox
 [i18n]
 	commitEncoding = windows-1252
 	logOutputEncoding = windows-1252
@@ -48,8 +44,7 @@
 	defaultToUpstream = true # if no <tree-ish> parameter given, merge with origin/[branch]
 [mergetool]
 	prompt = false
-[mergetool "winmerge"]	
-	name = WinMerge
+[mergetool.winmerge]
 	trustExitCode = true
 	cmd = "/c/Dev/WinMerge/WinMergeU.exe" -u -e -dl \"Local\" -dr \"Remote\" $LOCAL $REMOTE $MERGED
 [rerere]
@@ -76,12 +71,16 @@
 	dlogX = log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --numstat
 	lasttag = describe --tags --abbrev=0
 	taglist = "!f() { git log --tags --simplify-by-decoration --format=%d | grep -E 'tag.*Sprint' | tr -d '(),' | cut -f3 --delimiter=' '; }; f"
+
 	# print changes between last tag and second last tag
-	chglog = "!f() { CURR_TAG=$(git lasttag); PREV_TAG=$(git lasttag $CURR_TAG~1) ; echo "--== $CURR_TAG ==--"; git log --oneline $PREV_TAG..$CURR_TAG | cut -b9- | sort | uniq -w8 | grep -E '^(ZIB-[0-9]{4,})'; }; f"
+	# deprecated - was for ZIB project. Sorts by ticket number; prints each ticket number only once
+	# chglog = "!f() { CURR_TAG=$(git lasttag); PREV_TAG=$(git lasttag $CURR_TAG~1) ; echo "--== $CURR_TAG ==--"; git log --oneline $PREV_TAG..$CURR_TAG | cut -b9- | sort | uniq -w8 | grep -E '^(ZIB-[0-9]{4,})'; }; f"
+	chglog = "!f() { CURR_TAG=$(git lasttag); PREV_TAG=$(git lasttag $CURR_TAG~1) ; echo "--== $CURR_TAG ==--"; git log --oneline $PREV_TAG..$CURR_TAG | cut -b9-; }; f"
+
 	# print changes since last tag
 	sprintlog = "!f() { LAST_TAG=$(git lasttag); git log --oneline $LAST_TAG..HEAD | cut -b9- | sort | uniq -w8; }; f"
-	gconf = config --global -e
-	lconf = config --local -e
+	gconf = "!f(){ git config --global -e; }; f &" # edit global config
+	lconf = "!f(){ git config --local -e; }; f &" # edit local config
 	sup = "!f(){ gitk ..FETCH_HEAD; }; f &" # upstream changes
 	pus = "!f(){ gitk ORIG_HEAD..; }; f &" # changes since last rebase/merge
 	pmerge = merge -s recursive -X patience -X ignore-all-space # patient merge - takes longer but may resolve more conflicts
@@ -124,22 +123,7 @@
 	### noAssumeUnchanged <folder> - git wont ignore <folder> any longer for status calculation
 	# noAssumeUnchanged = "!f() { for i in $(git ls-files -v $1 | grep ^h.* | cut -b3-); do git local-unignore $i; done }; f"
 	noassumeUnchanged = "!f() { git ls-files -z $1 | xargs -0 -n 100 git update-index --no-assume-unchanged; }; f"
-
-	### genReviewBranch <commit message> <branch> - generates a review branch where all files touched by commits with message <commit message>
-	#	will be squashed into a single commit. Remaining files will be squashed into another commit.
-	# example:
-	#	git genreviewbranch ZIB-1234 origin/2.5
-	genReviewBranch = "!f() { "\
-						"branchname=$1"-Review"; "\
-						"firstRelevantCommit=$(git log --reverse --grep=$1 | head -1 | cut -b8-); "\
-						"firstRelevantCommit=$firstRelevantCommit"~1"; "\
-						"git checkout -b $branchname; "\
-						"echo \"reset soft to -> $firstRelevantCommit\"; "\
-						"git reset --soft $firstRelevantCommit; "\
-						"git resetfilestouchedby $1 $2 ; "\
-						"echo \"commit misc files\"; "\
-						"git commit --author=\"others <others@zib.com>\" -m \"squashed misc\"; "\
-						"git addfilestouchedby $1 $2; "\
-						"echo \"commit $1 relevant files\"; "\
-						"git commit --author=\"$1 <$1@zib.com>\" -m \"squashed commit for call $1\"; "\
-						"}; f"
+	
+	### provided by jonas
+	# prints command for deleting branches that have been merged with master
+	delmerged = "!f() { for branch in `git branch -a --merged | grep -v '*' | grep -E -v -w "master" | cut -c18-`; do echo git push origin :$branch; done }; f"
