@@ -1,0 +1,15 @@
+diff --git a/src/GitPrompt.ps1 b/src/GitPrompt.ps1
+index edd3058..ce3f9b2 100644
+--- a/src/GitPrompt.ps1
++++ b/src/GitPrompt.ps1
+@@ -280,8 +280,8 @@ function Write-GitStatus($status) {
+             }
+             $repoName = Split-Path -Leaf (Split-Path $status.GitDir)
+             $prefix = if ($s.EnableWindowTitle -is [string]) { $s.EnableWindowTitle } else { '' }
+-			$Host.UI.RawUI.WindowTitle = "$repoName [$($status.Branch)]"        
+-		}
++            $Host.UI.RawUI.WindowTitle = "$script:adminHeader$prefix$repoName [$($status.Branch)]"
++        }
+     } elseif ( $Global:PreviousWindowTitle ) {
+         $Host.UI.RawUI.WindowTitle = $Global:PreviousWindowTitle
+     }
