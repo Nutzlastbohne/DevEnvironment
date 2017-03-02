@@ -35,6 +35,8 @@
 	extendedRegexp = true
 [gui]
 	encoding = UTF-8
+#[help]
+#	browser = firefox
 [i18n]
 	commitEncoding = windows-1252
 	logOutputEncoding = windows-1252
@@ -59,10 +61,10 @@
 [status]
 	relativePaths = false
 [user]
-	name = moe
-	email = moe@waagh.org
-[web]
-	browser = firefox
+	name = Robert Radestock
+	email = robert.radestock@affinitas.de
+#[web]
+#	browser = firefox
 [alias]
 	logtree = log --format='%an - %ai, Hash: %H%n%w(220,6,6)%s' --graph
 	shrtlog = log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --shortstat
@@ -71,17 +73,15 @@
 	dlogX = log --format='%nAuthor: %C(yellow bold)%an%Creset, Date: %C(yellow bold)%ai%Creset, Hash: %C(yellow bold)%H%Creset%n%Creset%w(220,6,6)%B' --no-merges --color-words --numstat
 	lasttag = describe --tags --abbrev=0
 	taglist = "!f() { git log --tags --simplify-by-decoration --format=%d | grep -E 'tag.*Sprint' | tr -d '(),' | cut -f3 --delimiter=' '; }; f"
-
 	# print changes between last tag and second last tag
 	# deprecated - was for ZIB project. Sorts by ticket number; prints each ticket number only once
 	# chglog = "!f() { CURR_TAG=$(git lasttag); PREV_TAG=$(git lasttag $CURR_TAG~1) ; echo "--== $CURR_TAG ==--"; git log --oneline $PREV_TAG..$CURR_TAG | cut -b9- | sort | uniq -w8 | grep -E '^(ZIB-[0-9]{4,})'; }; f"
 	chglog = "!f() { CURR_TAG=$(git lasttag); PREV_TAG=$(git lasttag $CURR_TAG~1) ; echo "--== $CURR_TAG ==--"; git log --oneline $PREV_TAG..$CURR_TAG | cut -b9-; }; f"
-
 	# print changes since last tag
 	sprintlog = "!f() { LAST_TAG=$(git lasttag); git log --oneline $LAST_TAG..HEAD | cut -b9- | sort | uniq -w8; }; f"
 	gconf = "!f(){ git config --global -e; }; f &" # edit global config
 	lconf = "!f(){ git config --local -e; }; f &" # edit local config
-	sup = "!f(){ gitk ..FETCH_HEAD; }; f &" # upstream changes
+	sup = "!f(){ REMOTE=$(git getremote); gitk ..$REMOTE; }; f &" # upstream changes
 	pus = "!f(){ gitk ORIG_HEAD..; }; f &" # changes since last rebase/merge
 	pmerge = merge -s recursive -X patience -X ignore-all-space # patient merge - takes longer but may resolve more conflicts
 	mt = mergetool -y
@@ -124,6 +124,9 @@
 	# noAssumeUnchanged = "!f() { for i in $(git ls-files -v $1 | grep ^h.* | cut -b3-); do git local-unignore $i; done }; f"
 	noassumeUnchanged = "!f() { git ls-files -z $1 | xargs -0 -n 100 git update-index --no-assume-unchanged; }; f"
 	
-	### provided by jonas
-	# prints command for deleting branches that have been merged with master
-	delmerged = "!f() { for branch in `git branch -a --merged | grep -v '*' | grep -E -v -w "master" | cut -c18-`; do echo git push origin :$branch; done }; f"
+	### git delmerged
+	# for each merged branch, print command to remove branch from origin (based on a script provided by jonas)
+	delmerged = "!f() { for branch in `git branch -a --merged | grep -v "/master$" | grep -o "remotes/origin/.*" | cut -c16-`; do echo git push origin :$branch; done }; f"
+
+	## getremote - returns remote of current branch
+	getremote = "!f() { git for-each-ref --format='%(upstream:short)' $(git symbolic-ref -q HEAD); }; f"
