@@ -7,7 +7,7 @@ if ((pwd).Path.Contains("ConEmuPack")) {
 $ui = (Get-Host).UI.RawUI
 $ui.WindowTitle = "conFoo"
 $size = $ui.BufferSize
-$size.width=220
+$size.width=200
 $size.height=10000
 $ui.BufferSize = $size
 $size = $ui.WindowSize
@@ -29,6 +29,11 @@ $GIT_HOME = (get-item $GIT_PATH.Definition).Directory.Parent.FullName
 $MONGO_REPO = "C:\Dev\db_repo"
 $JBOSS_HOME = "C:\Dev\server\jboss-eap-6.2"
 
+## 'ssh-copy-id' - copy own ssh identity to server to skip "enter pw" query
+# usage: ssh-copy-id user@targetServer
+# e.g. ssh-copy-id vagrant@192.168.56.52
+function ssh-copy-id {cat ~/.ssh/id_rsa.pub | ssh $args "cat >> ~/.ssh/authorized_keys"}
+
 ## docker relevant ##
 # depcrecated since docker machine
 #$env:DOCKER_HOST = "tcp://192.168.59.103:2376"
@@ -47,6 +52,10 @@ function docker-python {
 	docker run -it --rm --name pyContainer -v "$(docker-pwd):/app" -w /app python:2 python $args
 }
 
+## vagrant relevant
+Set-Alias vg vagrant
+
+Set-Alias dc docker-compose
 Set-Alias dm docker-machine
 Set-Alias eval Invoke-Expression
 
@@ -126,6 +135,11 @@ Set-Alias -Name which -Value whichFctn -Option AllScope
 appendMessage("`t ssc X - create new console for ssh connection to server with alias X")
 function ssc {
     ssh $args -new_console:t:$args
+}
+
+appendMessage("`t ssv - ssh to vagrant container")
+function ssv {
+    ssh vagrant@192.168.56.52
 }
 
 ######################################### Maven Stuff #########################################
