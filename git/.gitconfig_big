@@ -135,9 +135,8 @@
 
 	### git delgone
 	# list branch deletion command for each branch missing in upstream
-	# beware: the script will list branches that contain 'gone' in the last commit message! (to be fixed)
-        # git branch -v | grep gone | grep -Eo "^\s+\S+" | xargs -r -n1 echo "git branch -d"
-        delgone = "!f() { git branch -v --no-color | grep -E "^(\s+\S+){2}\s+\[gone\]" | grep -Eo \"^\\s+\\S+\" | xargs -r -n1 echo "git branch -d"; }; f"
+        # git branch -v --no-color | grep -E "^(\s+\S+){2}\s+\[gone\]" | grep -Eo "^\\s+\\S+" | xargs -r -n1 echo "git branch -d"
+	delgone = "!f() { git branch -v --no-color | grep -E \"^(\\s+\\S+){2}\\s+\\[gone\\]\" | grep -Eo \"^\\s+\\S+\" | xargs -r -n1 echo \"git branch -d\"; }; f"
 
 	## getremote - returns remote of current branch
 	getremote = "!f() { git for-each-ref --format='%(upstream:short)' $(git symbolic-ref -q HEAD); }; f"
